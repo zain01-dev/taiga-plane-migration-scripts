@@ -865,7 +865,7 @@ def update_issue_subscribers(cursor, mapping):
             )
             removed += 1
 
-        for subscriber_id in sorted(desired_subscribers):
+        for subscriber_id in sorted(desired_subscribers, key=str):
             if subscriber_id in existing_by_subscriber:
                 continue
 
