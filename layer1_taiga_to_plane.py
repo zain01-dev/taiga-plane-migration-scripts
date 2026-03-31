@@ -217,6 +217,24 @@ def extract_requestor(item):
     return None
 
 
+def extract_custom_start_date(item):
+    """Best-effort extraction of a Taiga custom start date."""
+    if not isinstance(item, dict):
+        return None
+    custom_vals = item.get("custom_attributes_values", {})
+    if not isinstance(custom_vals, dict):
+        return None
+    attrs = custom_vals.get("attributes_values", custom_vals)
+    if not isinstance(attrs, dict):
+        return None
+    for key, value in attrs.items():
+        if not isinstance(key, str):
+            continue
+        if key.strip().lower() == "start date" and value:
+            return extract_date(value)
+    return None
+
+
 def build_legacy_block(item, item_type):
     """Build the HTML legacy data block for an issue description."""
     rows = []
@@ -946,8 +964,10 @@ def create_plane_issue(
         assignee_ids.append(user_map[item["assigned_to"]])
 
     # Map dates
-    start_date = extract_date(item.get("created_date"))
+    start_date = extract_custom_start_date(item) or extract_date(item.get("created_date"))
     target_date = extract_date(item.get("due_date"))
+    if start_date and target_date and start_date > target_date:
+        target_date = start_date
     created_at = item.get("created_date")
     author_email = item.get("owner")
     taiga_issue_type = item.get("type")
