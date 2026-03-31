@@ -107,6 +107,13 @@ def normalize_email(value):
     return email if "@" in email else ""
 
 
+def normalize_db_id(value):
+    """Normalize DB-returned ids (UUID/str/etc.) to a comparable string form."""
+    if value is None:
+        return None
+    return str(value)
+
+
 def lookup_user_id(cursor, email):
     """Look up a Plane user ID by email address."""
     if not email:
@@ -117,7 +124,7 @@ def lookup_user_id(cursor, email):
     try:
         cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
         row = cursor.fetchone()
-        user_id = row[0] if row else None
+        user_id = normalize_db_id(row[0]) if row else None
         if cache_key:
             USER_ID_CACHE[cache_key] = user_id
         return user_id
@@ -136,7 +143,7 @@ def get_project_workspace_id(cursor, project_id, cache=None):
         return cache[project_id]
     cursor.execute("SELECT workspace_id FROM projects WHERE id = %s", (project_id,))
     row = cursor.fetchone()
-    workspace_id = row[0] if row else None
+    workspace_id = normalize_db_id(row[0]) if row else None
     cache[project_id] = workspace_id
     return workspace_id
 
@@ -850,7 +857,9 @@ def update_issue_subscribers(cursor, mapping):
             (issue_id,),
         )
         existing_rows = cursor.fetchall() or []
-        existing_by_subscriber = {row[1]: row[0] for row in existing_rows}
+        existing_by_subscriber = {
+            normalize_db_id(row[1]): normalize_db_id(row[0]) for row in existing_rows
+        }
 
         for subscriber_id, issue_subscriber_id in existing_by_subscriber.items():
             if subscriber_id in desired_subscribers:
@@ -865,7 +874,7 @@ def update_issue_subscribers(cursor, mapping):
             )
             removed += 1
 
-        for subscriber_id in sorted(desired_subscribers, key=str):
+        for subscriber_id in sorted(desired_subscribers):
             if subscriber_id in existing_by_subscriber:
                 continue
 
