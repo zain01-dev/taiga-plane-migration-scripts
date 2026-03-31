@@ -52,6 +52,7 @@ export TAIGA_BASE_URL="https://projects.arbisoft.com"
 export TAIGA_AUTH_TOKEN="<taiga_access_token>"
 
 export PLANE_URL="https://plane.arbisoft.com"
+export PLANE_UPLOAD_BASE_URL="http://plane-nginx"
 export PLANE_WORKSPACE_SLUG="arbisoft"
 export PLANE_API_KEY="<plane_access_token>"
 
@@ -63,6 +64,7 @@ export PLANE_DB_PASSWORD="<db_password>"
 
 export MIGRATE_TASKS_AS_SUBISSUES="true"
 export MIGRATE_WIKI_PAGES_VIA_DB="true"
+export PLANE_RATE_LIMIT_DELAY="0"
 ```
 
 ## Recommended Structure

@@ -37,14 +37,25 @@ def env_bool(name, default=False):
         return default
     return raw.strip().lower() in {"1", "true", "yes", "y", "on"}
 
+
+def env_float(name, default):
+    raw = os.environ.get(name)
+    if raw is None or not raw.strip():
+        return float(default)
+    try:
+        return float(raw)
+    except ValueError:
+        return float(default)
+
 PLANE_URL = os.environ.get("PLANE_URL", "http://localhost:8080").rstrip("/")  # No trailing slash
+PLANE_UPLOAD_BASE_URL = os.environ.get("PLANE_UPLOAD_BASE_URL", PLANE_URL).rstrip("/")
 PLANE_API_KEY = os.environ.get("PLANE_API_KEY", "").strip()
 PLANE_WORKSPACE_SLUG = os.environ.get("PLANE_WORKSPACE_SLUG", "").strip()
 MIGRATE_TASKS_AS_SUBISSUES = env_bool("MIGRATE_TASKS_AS_SUBISSUES", False)
 TAIGA_BASE_URL = os.environ.get("TAIGA_BASE_URL", "https://projects.arbisoft.com").rstrip("/")
 
-# Rate limiting: seconds between API calls
-RATE_LIMIT_DELAY = 0.3
+# Optional client-side pacing between API calls. Default is disabled.
+RATE_LIMIT_DELAY = env_float("PLANE_RATE_LIMIT_DELAY", 0.0)
 
 # ==========================================
 # GLOBALS
@@ -389,22 +400,33 @@ def slug_to_title(slug):
 def normalize_upload_url(upload_url):
     """
     Normalize upload URLs so presigned paths remain reachable from the current runner.
-    If Plane returns localhost while running inside Docker, route via PLANE_URL host.
+    If Plane returns an internal Docker hostname or the wrong scheme/port, route via
+    PLANE_UPLOAD_BASE_URL.
     """
     try:
         parsed = urlparse(upload_url)
-        plane_base = urlparse(PLANE_URL)
+        upload_base = urlparse(PLANE_UPLOAD_BASE_URL)
     except Exception:
         return upload_url
 
     if not parsed.netloc:
         return upload_url
 
-    if parsed.hostname in {"localhost", "127.0.0.1"} and plane_base.netloc:
+    internal_hosts = {
+        "localhost",
+        "127.0.0.1",
+        "plane-nginx",
+        "plane-app-proxy-1",
+        "proxy",
+        "nginx",
+    }
+    hostname = (parsed.hostname or "").strip().lower()
+
+    if (hostname in internal_hosts or hostname.endswith("-nginx") or hostname.endswith("-proxy")) and upload_base.netloc:
         return urlunparse(
             (
-                plane_base.scheme or parsed.scheme,
-                plane_base.netloc,
+                upload_base.scheme or parsed.scheme,
+                upload_base.netloc,
                 parsed.path,
                 parsed.params,
                 parsed.query,
