@@ -495,10 +495,8 @@ def main():
 
     if report["missing_plane_users"]:
         print("\nMissing Plane users:")
-        for email in report["missing_plane_users"][:20]:
+        for email in report["missing_plane_users"]:
             print(f"  - {email}")
-        if len(report["missing_plane_users"]) > 20:
-            print(f"  ... and {len(report['missing_plane_users']) - 20} more")
 
 
 if __name__ == "__main__":
