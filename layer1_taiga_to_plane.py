@@ -1691,7 +1691,7 @@ def main():
 
     if stats["errors"]:
         print("\n⚠️  ERRORS:")
-        for err in stats["errors"][:20]:
+        for err in stats["errors"]:
             print(f"    • {err}")
         if len(stats["errors"]) > 20:
             print(f"    ... and {len(stats['errors']) - 20} more")
