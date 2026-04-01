@@ -38,6 +38,22 @@ def env_bool(name, default=False):
     return raw.strip().lower() in {"1", "true", "yes", "y", "on"}
 
 
+def build_mapping_output_path(dump_files):
+    """
+    Use a dump-specific mapping filename for single-file runs so one-by-one
+    migrations don't overwrite each other. Keep the generic name for
+    multi-file runs.
+    """
+    if len(dump_files) != 1:
+        return "migration_mapping.json"
+
+    dump_name = os.path.basename(dump_files[0])
+    dump_stem, _ = os.path.splitext(dump_name)
+    safe_stem = re.sub(r"[^A-Za-z0-9._-]+", "-", dump_stem).strip("-")
+    safe_stem = safe_stem or "single_dump"
+    return f"migration_mapping_{safe_stem}.json"
+
+
 def env_float(name, default):
     raw = os.environ.get(name)
     if raw is None or not raw.strip():
@@ -1663,7 +1679,7 @@ def main():
         migrate_project(taiga_dump)
 
     # Save mapping file
-    mapping_output = "migration_mapping.json"
+    mapping_output = build_mapping_output_path(dump_files)
     with open(mapping_output, "w") as f:
         json.dump(migration_mapping, f, indent=2, default=str)
     print(f"\n📄 Mapping saved to: {mapping_output}")
