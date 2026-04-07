@@ -28,7 +28,7 @@ Migrates dump data through Plane API:
 - attachments
 - module links
 - watcher data into mapping
-- generates fresh `migration_mapping.json`
+- generates a fresh per-dump mapping and checkpoint set
 
 ### Layer 2
 Runs DB reconciliation using Layer 1 mapping:
@@ -97,25 +97,41 @@ python3 layer0_user_presync.py \
 mkdir -p runs/layer1
 cd runs/layer1
 python3 -u ../../layer1_taiga_to_plane.py \
-  ../../dumps/project1.json \
-  ../../dumps/project2.json | tee layer1.log
+  ../../dumps/project1.json
 ```
 
 Output:
-- `runs/layer1/migration_mapping.json`
+- `runs/layer1/project1/migration_mapping_project1.json`
+- `runs/layer1/project1/migration_mapping_project1.checkpoint.json`
+- `runs/layer1/project1/layer1.log`
+
+Optional multi-dump command:
+```bash
+mkdir -p runs/layer1
+cd runs/layer1
+python3 -u ../../layer1_taiga_to_plane.py \
+  ../../dumps/project1.json \
+  ../../dumps/project2.json
+```
+
+Multi-dump behavior:
+- each dump runs in isolation
+- each dump gets its own folder, mapping, checkpoint, and `layer1.log`
+- no shared mapping file is used across dumps
 
 ### Layer 2
 ```bash
-mkdir -p runs/layer2
-cd runs/layer2
-python3 ../../layer2_update_plane_db.py ../layer1/migration_mapping.json | tee layer2.log
+mkdir -p runs/layer2/project1
+cd runs/layer2/project1
+python3 ../../../layer2_update_plane_db.py ../../layer1/project1/migration_mapping_project1.json | tee layer2.log
 ```
 
 ## Rules
 - Use a fresh Layer 1 run before Layer 2.
-- Do not reuse an old partial `migration_mapping.json`.
+- Do not reuse an old partial mapping/checkpoint set.
 - Run Layer 0 first so assignees and user mappings work correctly.
 - For large dumps, run all layers on the server.
+- **Recommended: run Layer 1 with one dump file at a time for the best performance, easiest recovery, cleaner validation, and lowest risk of operational mistakes.**
 
 ## Success Checks
 After Layer 2, verify a few representative items for:
