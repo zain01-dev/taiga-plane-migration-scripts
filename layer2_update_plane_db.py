@@ -1599,7 +1599,7 @@ def update_issue_activities(cursor, mapping):
 
 
 def update_cycles(cursor, mapping):
-    """Update created_at and created_by_id for migrated cycles."""
+    """Update created_at and ownership metadata for migrated cycles."""
     cycles = mapping.get("cycles", {})
     updated = 0
     skipped = 0
@@ -1641,6 +1641,11 @@ def update_cycles(cursor, mapping):
             plane_user_id = lookup_user_id(cursor, author_email)
             if plane_user_id:
                 set_clauses.append("created_by_id = %s")
+                params.append(plane_user_id)
+                # Plane cycle lead/owner is stored separately from created_by.
+                # Keep them aligned with the Taiga milestone owner so the UI
+                # does not continue to show the API caller as the cycle lead.
+                set_clauses.append("owned_by_id = %s")
                 params.append(plane_user_id)
 
         if not set_clauses:
