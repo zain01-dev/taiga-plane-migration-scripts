@@ -47,8 +47,8 @@ python3 -m pip install requests "psycopg[binary]"
 
 ## Required Environment Variables
 ```bash
-export TAIGA_API_URL="https://projects.arbisoft.com/api/v1"
-export TAIGA_BASE_URL="https://projects.arbisoft.com"
+export TAIGA_API_URL="https://taiga.arbisoft.com/api/v1"
+export TAIGA_BASE_URL="https://taiga.arbisoft.com"
 export TAIGA_AUTH_TOKEN="<taiga_access_token>"
 
 export PLANE_URL="https://plane.arbisoft.com"
