@@ -79,7 +79,7 @@ PLANE_UPLOAD_BASE_URL = os.environ.get("PLANE_UPLOAD_BASE_URL", PLANE_URL).rstri
 PLANE_API_KEY = os.environ.get("PLANE_API_KEY", "").strip()
 PLANE_WORKSPACE_SLUG = os.environ.get("PLANE_WORKSPACE_SLUG", "").strip()
 MIGRATE_TASKS_AS_SUBISSUES = env_bool("MIGRATE_TASKS_AS_SUBISSUES", False)
-TAIGA_BASE_URL = os.environ.get("TAIGA_BASE_URL", "https://projects.arbisoft.com").rstrip("/")
+TAIGA_BASE_URL = os.environ.get("TAIGA_BASE_URL", "https://taiga.arbisoft.com").rstrip("/")
 
 # Optional client-side pacing between API calls. Default is disabled.
 RATE_LIMIT_DELAY = env_float("PLANE_RATE_LIMIT_DELAY", 0.0)
